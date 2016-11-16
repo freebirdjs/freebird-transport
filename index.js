@@ -22,9 +22,10 @@ Transport.prototype.receive = function (msg, callback) {
     var self = this;
 
     setImmediate(function () {
-        self.emit('message', msg);
-        if (callback)
+        if (typeof callback === 'function')
             callback();
+
+        self.emit('message', msg);
     });
 };
 
