@@ -43,7 +43,7 @@ To use the transport object:
 * [_send()](#API__send) - Implementer provides
 * [send()](#API_send)
 * [receive()](#API_receive) - Implementer calls
-* Event: ['message'](#EVT_message)
+* Event: ['message'](#EVT_message), ['unhandledMessage'](#EVT_unhandledMessage)
 
 *************************************************
 <a name="API_Transport"></a>
@@ -176,6 +176,26 @@ transp.on('message', function (msg) {
 });
 ```
 
+*************************************************
+<a name="EVT_unhandledMessage"></a>
+### .on('unhandledMessage', function (msg) {})
+The user can listen to the `'unhandledMessage'` event to receive the message that is not processed by the freebird.  
+
+**Arguments of the listener**  
+
+1. `msg` (_String_ | _Buffer_): The message received.  
+  
+**Examples:**  
+    
+```js
+var transp = new Transport();
+
+transp.on('unhandledMessage', function (msg) {
+    console.log('Message not processed by freebird: ' + msg.toString());
+});
+```
+
+*************************************************
 <a name="Example"></a>
 ## 3. TCP Server/Client Example
   

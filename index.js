@@ -29,4 +29,15 @@ Transport.prototype.receive = function (msg, callback) {
     });
 };
 
+Transport.prototype.unhandled = function (msg, callback) {
+    var self = this;
+
+    setImmediate(function () {
+        if (typeof callback === 'function')
+            callback();
+
+        self.emit('unhandledMessage', msg);
+    });
+};
+
 module.exports = Transport;
