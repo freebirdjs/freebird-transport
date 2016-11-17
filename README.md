@@ -20,7 +20,7 @@ The transport for freebird REQ/RSP/IND message transmission
 This module is the abstract class for developers to create their own transportation to communicate with freebird framework. This class inherits from EventEmitter which will emit a `'message'` event when a message arrives.  
 
 * In this document, `transp` will be used to denote the instance of this class.  
-* In the following methods, the argument `msg` must be an object in the shape of `{ id, data }`, where the `data` property is mandatory and should be a string or a buffer, and the `id` property is optional and should be a string or a number if given. One can attach an identifier, like a clientId, to `msg.id` for message multiplexing.  
+* In the following methods, the argument `msg` must be an object in the shape of `{ clientId, data }`, where the `data` property is mandatory and should be a string or a buffer, and the `clientId` property is optional and should be a string or a number if given. One can attach an identifier, like a client id, to `msg.clientId` for message multiplexing.  
 
 ### For implementers:  
 

@@ -7,7 +7,7 @@ var util = require('util'),
 function Transport() {
     EventEmitter.call(this);
 
-    this._send = function (msg, callback) {                 // msg: { id: x, data: x }
+    this._send = function (msg, callback) {                 // msg: { clientId: x, data: x }
         throw new Error('Template method _send should be provided by implementor');
     };
 
@@ -16,7 +16,7 @@ function Transport() {
 
 util.inherits(Transport, EventEmitter);
 
-Transport.prototype.send = function (msg, callback) {       // msg: { id: x, data: x }
+Transport.prototype.send = function (msg, callback) {       // msg: { clientId: x, data: x }
     if (typeof msg !== 'object')
         return setImmediate(callback, new TypeError('msg must be an object with a data property'));
     else
@@ -30,7 +30,7 @@ Transport.prototype.broadcast = function (msg, callback) {  // msg: { data: x }
         return this._broadcast(msg, callback);
 };
 
-Transport.prototype.receive = function (msg, callback) {    // msg: { id: x, data: x }
+Transport.prototype.receive = function (msg, callback) {    // msg: { clientId: x, data: x }
     var self = this;
 
     if (typeof msg !== 'object')
