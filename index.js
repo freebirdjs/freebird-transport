@@ -10,6 +10,8 @@ function Transport() {
     this._send = function (msg, callback) {                 // msg: { id: x, data: x }
         throw new Error('Template method _send should be provided by implementor');
     };
+
+    this._broadcast = this.send;
 }
 
 util.inherits(Transport, EventEmitter);
@@ -19,6 +21,13 @@ Transport.prototype.send = function (msg, callback) {       // msg: { id: x, dat
         return setImmediate(callback, new TypeError('msg must be an object with a data property'));
     else
         return this._send(msg, callback);
+};
+
+Transport.prototype.broadcast = function (msg, callback) {  // msg: { data: x }
+    if (typeof msg !== 'object')
+        return setImmediate(callback, new TypeError('msg must be an object with a data property'));
+    else
+        return this._broadcast(msg, callback);
 };
 
 Transport.prototype.receive = function (msg, callback) {    // msg: { id: x, data: x }

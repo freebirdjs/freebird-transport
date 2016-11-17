@@ -40,11 +40,18 @@ To use the transport object:
 <a name="APIs"></a>
 ## 2. APIs and Events  
   
-* [new Transport()](#API_Transport) - Implementer creates
-* [_send()](#API__send) - Implementer provides
-* [send()](#API_send)
-* [receive()](#API_receive) - Implementer calls
-* Event: ['message'](#EVT_message), ['unhandledMessage'](#EVT_unhandledMessage)
+* Constructor
+    - [new Transport()](#API_Transport)
+* Implementer provides
+    - [_send()](#API__send)
+    - [_broadcast()](#API__broadcast)
+* Implementer calls
+    - [receive()](#API_receive)
+* User calls
+    - [send()](#API_send)
+    - [broadcast()](#API_broadcast)
+* User listens to events
+    - ['message'](#EVT_message), ['unhandledMessage'](#EVT_unhandledMessage)
 
 *************************************************
 <a name="API_Transport"></a>
@@ -104,6 +111,43 @@ transp._send = function (msg, callback) {
 ```
 
 *************************************************
+<a name="API__broadcast"></a>
+### ._broadcast(msg, callback)
+The implmentation of broadcasting the message. This is optional, it will use `transp.send(msg, callback)` internally by default if implementation is not given. This broadcasting method is used to send an indication to multiple remote clients.  
+
+**Arguments:**  
+
+1. `msg` (_Object_): The message to broadcast out is a string or a buffer attached to `data` property of this object.  
+2. `callback` (_Function_): `function (err, bytes) { ... }`. This err-first callback should be called after message sent off. The argument `bytes` tells how many bytes were sent.  
+  
+**Returns:**  
+  
+* none
+
+**Examples:**  
+    
+```js
+var transp = new Transport();
+
+transp._broadcast = function (msg, callback) {
+    var bytes;
+
+    if (typeof msg.data === 'string')
+        msg.data = new Buffer(msg.data);
+
+    if (!Buffer.isBuffer(msg.data))
+        return setImmediate(callback, new TypeError('msg.data should be a string or a buffer'));
+
+    bytes = msg.data.length;
+
+    // ... implemention of message broadcasting
+
+    // Finally, call callback
+    callback(null, bytes);
+};
+```
+
+*************************************************
 <a name="API_send"></a>
 ### .send(msg, callback)
 Call this method to send the message off.  
@@ -126,6 +170,33 @@ var transp = new Transport();
 
 // call transp.send() to send message
 transp.send({ data: 'Hello World' }, function (err, bytes) {
+    if (err)
+        console.log(err);
+    else
+        console.log(bytes + ' bytes were sent')
+});
+```
+
+*************************************************
+<a name="API_broadcast"></a>
+### .broadcast(msg, callback)
+Call this method to broadcast the message.  
+
+**Arguments:**  
+
+1. `msg` (_Object_): The message to trasmit out must be a string or a buffer which should be attached to `data` property of this object.  
+2. `callback` (_Function_): `function (err, bytes) { ... }`. Get called after message sent off. The argument `bytes` tells how many bytes were sent.  
+  
+**Returns:**  
+  
+* none
+
+**Examples:**  
+    
+```js
+var transp = new Transport();
+
+transp.broadcast({ data: 'Hello World' }, function (err, bytes) {
     if (err)
         console.log(err);
     else
