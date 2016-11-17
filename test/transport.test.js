@@ -14,7 +14,7 @@ var server = net.createServer(function (c) {
 
     client.on('end', function () {});
     client.on('data', function (data) {
-        transp.receive(data);
+        transp.receive({ data: data });
     });
 });
 
@@ -23,8 +23,8 @@ var server = net.createServer(function (c) {
 /***********************************************************************/
 server.listen(4321, function () {
     realClient = net.createConnection({ port: 4321 }, function () {});
-    realClient.on('data', (data) => {});
-    realClient.on('end', () => {});
+    realClient.on('data', function (data) {});
+    realClient.on('end', function () {});
 });
 
 /***********************************************************************/
@@ -35,7 +35,7 @@ describe('Transport Construction', function () {
         it('should throw if _send is not implemented when call send()', function () {
             expect(function () {
                 var transp = new Transport();
-                transp.send('Hello', function () {});
+                transp.send({ data: 'Hello' }, function () {});
             }).to.throw(Error);
         });
     });
@@ -46,9 +46,9 @@ describe('Transport Functional Testing', function () {
     // Implementation of _send
     transp._send = function (msg, callback) {
         if (client) {
-            client.write(msg);
+            client.write(msg.data);
             if (callback)
-                callback(null, msg.length);
+                callback(null, msg.data.length);
         } else {
             callback(new Error('No client connected'));
         }
@@ -60,12 +60,12 @@ describe('Transport Functional Testing', function () {
                 if (data.toString() === 'Hello World')
                     done();
             });
-            transp.send('Hello World', function (err, bytes) {});
+            transp.send({ data: 'Hello World' }, function (err, bytes) {});
         });
 
         it('Server should receive "Hello Node"', function (done) {
             transp.on('message', function (msg) {
-                if (msg.toString() === 'Hello Node')
+                if (msg.data.toString() === 'Hello Node')
                     done();
             });
 

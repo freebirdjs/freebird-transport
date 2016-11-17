@@ -19,7 +19,8 @@ The transport for freebird REQ/RSP/IND message transmission
 
 This module is the abstract class for developers to create their own transportation to communicate with freebird framework. This class inherits from EventEmitter which will emit a `'message'` event when a message arrives.  
 
-In this document, `transp` will be used to denote the instance of this class.  
+* In this document, `transp` will be used to denote the instance of this class.  
+* In the following methods, the argument `msg` must be an object in the shape of `{ id, data }`, where the `data` property is mandatory and should be a string or a buffer, and the `id` property is optional and should be a string or a number if given. One can attach an identifier, like a clientId, to `msg.id` for message multiplexing.  
 
 ### For implementers:  
 
@@ -72,7 +73,7 @@ The implmentation of sending out the message.
 
 **Arguments:**  
 
-1. `msg` (_String_ | _Buffer_): The message to trasmit out.  
+1. `msg` (_Object_): The message to trasmit out is a string or a buffer attached to `data` property of this object.  
 2. `callback` (_Function_): `function (err, bytes) { ... }`. This err-first callback should be called after message sent off. The argument `bytes` tells how many bytes were sent.  
   
 **Returns:**  
@@ -87,13 +88,13 @@ var transp = new Transport();
 transp._send = function (msg, callback) {
     var bytes;
 
-    if (typeof msg === 'string')
-        msg = new Buffer(msg);
+    if (typeof msg.data === 'string')
+        msg.data = new Buffer(msg.data);
 
-    if (!Buffer.isBuffer(msg))
-        return setImmediate(callback, new TypeError('msg should be a string or a buffer'));
+    if (!Buffer.isBuffer(msg.data))
+        return setImmediate(callback, new TypeError('msg.data should be a string or a buffer'));
 
-    bytes = msg.length;
+    bytes = msg.data.length;
 
     // ... implemention of message sending
 
@@ -109,7 +110,7 @@ Call this method to send the message off.
 
 **Arguments:**  
 
-1. `msg` (_String_ | _Buffer_): The message to trasmit out.  
+1. `msg` (_Object_): The message to trasmit out must be a string or a buffer which should be attached to `data` property of this object.  
 2. `callback` (_Function_): `function (err, bytes) { ... }`. Get called after message sent off. The argument `bytes` tells how many bytes were sent.  
   
 **Returns:**  
@@ -124,7 +125,7 @@ var transp = new Transport();
 // assume transp._send was implemented
 
 // call transp.send() to send message
-transp.send('Hello World', function (err, bytes) {
+transp.send({ data: 'Hello World' }, function (err, bytes) {
     if (err)
         console.log(err);
     else
@@ -139,7 +140,7 @@ The Implemntor should call this method to inform the message arrival.
 
 **Arguments:**  
 
-1. `msg` (_String_ | _Buffer_): The message received.  
+1. `msg` (_Object_): This must be an object with a `data` property that holds the received message.  
 2. `callback` (_Function_): `function (err) { ... }`. Optional. Get called after message sent off.
   
 **Returns:**  
@@ -153,7 +154,7 @@ var transp = new Transport();
 
 // Implemntor calls transp.receive() when message arrives
 foo.on('data', function (data) {
-    transp.receive(data);
+    transp.receive({ data: data });
 });
 ```
 
@@ -164,7 +165,7 @@ The user can listen to the `'message'` event to receive the message.
 
 **Arguments of the listener**  
 
-1. `msg` (_String_ | _Buffer_): The message received.  
+1. `msg` (_Object_): This must be an object with a `data` property that holds the received message of a string or a buffer.  
   
 **Examples:**  
     
@@ -172,7 +173,7 @@ The user can listen to the `'message'` event to receive the message.
 var transp = new Transport();
 
 transp.on('message', function (msg) {
-    console.log(msg.toString());
+    console.log(msg.data.toString());
 });
 ```
 
@@ -183,7 +184,7 @@ The user can listen to the `'unhandledMessage'` event to receive the message tha
 
 **Arguments of the listener**  
 
-1. `msg` (_String_ | _Buffer_): The message received.  
+1. `msg` (_Object_): This must be an object with a `data` property that holds the received message of a string or a buffer.  
   
 **Examples:**  
     
@@ -191,7 +192,7 @@ The user can listen to the `'unhandledMessage'` event to receive the message tha
 var transp = new Transport();
 
 transp.on('unhandledMessage', function (msg) {
-    console.log('Message not processed by freebird: ' + msg.toString());
+    console.log('Message not processed by freebird: ' + msg.data.toString());
 });
 ```
 
@@ -218,7 +219,7 @@ server = net.createServer(function (c) {
 
     // Message received
     client.on('data', function (data) {
-        transp.receive(data);
+        transp.receive({ data: data });
     });
 });
 
@@ -230,18 +231,21 @@ server.listen(4321, function () {
 transp._send = function (msg, callback) {
     var bytes;
 
-    if (typeof msg === 'string')
-        msg = new Buffer(msg);
+    if (typeof msg !== 'object')
+        return setImmediate(callback, new TypeError('msg should be an object'));
 
-    if (!Buffer.isBuffer(msg))
-        return setImmediate(callback, new TypeError('msg should be a string or a buffer'));
+    if (typeof msg.data === 'string')
+        msg.data = new Buffer(msg.data);
 
-    bytes = msg.length;
+    if (!Buffer.isBuffer(msg.data))
+        return setImmediate(callback, new TypeError('msg.data should be a string or a buffer'));
+
+    bytes = msg.data.length;
 
     if (!client)
         return setImmediate(callback, new Error('No client connected'));
 
-    client.write(msg);
+    client.write(msg.data);
     setImmediate(callback, null, bytes);
 };
 
@@ -261,18 +265,18 @@ client = net.createConnection(4321, 'localhost', function () {
     transp._send = function (msg, callback) {
         var bytes;
 
-        if (typeof msg === 'string')
-            msg = new Buffer(msg);
+        if (typeof msg.data === 'string')
+            msg.data = new Buffer(msg.data);
 
-        if (!Buffer.isBuffer(msg))
-            return setImmediate(callback, new TypeError('msg should be a string or a buffer'));
+        if (!Buffer.isBuffer(msg.data))
+            return setImmediate(callback, new TypeError('msg.data should be a string or a buffer'));
 
-        bytes = msg.length;
+        bytes = msg.data.length;
 
         if (!client)
             return setImmediate(callback, new Error('No client created'));
 
-        client.write(msg);
+        client.write(msg.data);
         setImmediate(callback, null, bytes);
     };
 });
@@ -283,7 +287,7 @@ client.on('end', function () {
 
 // Message received
 client.on('data', function (data) {
-    transp.receive(data);
+    transp.receive({ data: data });
 });
 
 module.exports = transp;
