@@ -24,7 +24,7 @@ This module is the abstract class for developers to create their own transportat
 
 ### For implementers:  
 
-To have a valid `transp`, two things must be done by the implementor.  
+To have a valid `transp`, two things must be done by the implementer.  
 
 1. Must implement the `transp._send(msg, callback)` method on the transport instance.  
 2. Must call the `transp.receive(msg)` method to let the transport instance know that there a message comes in. Calling `transp.receive(msg)` will induce a `'message'` event triggered on the transport instance.  
@@ -251,7 +251,7 @@ transp.on('message', function (msg) {
 *************************************************
 <a name="EVT_unhandledMessage"></a>
 ### .on('unhandledMessage', function (msg) {})
-The user can listen to the `'unhandledMessage'` event to receive the message that is not processed by the freebird.  
+The implementer can listen to the `'unhandledMessage'` event to receive the message that is not processed by the freebird.  
 
 **Arguments of the listener**  
 
